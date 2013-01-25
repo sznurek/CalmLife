@@ -1,0 +1,28 @@
+Oscilators and stable structures (discrete):
+  let alpha = 0.028
+  let (b1, b2) = (0.23075, 0.280) (* birth interval *)
+  let (d1, d2) = (0.280, 0.420) (* death interval *)
+  let (r1, r2) = (2, 3) (* inner and outer radius *)
+
+Something happening! (continuous, discrete time stepping)
+  let alpha = 0.04
+  let (b1, b2) = (0.230, 0.365) (* birth interval *)
+  let (d1, d2) = (0.270, 0.445) (* death interval *)
+  let (r1, r2) = (4, 12) (* inner and outer radius *)
+  (* Or better: *)
+  let alpha = 0.04
+  let (b1, b2) = (0.230, 0.365) (* birth interval *)
+  let (d1, d2) = (0.270, 0.495) (* death interval *)
+  let (r1, r2) = (4, 12) (* inner and outer radius *)
+
+Full continuous, dt = 0.3
+  let alpha = 0.08
+  let (b1, b2) = (0.240, 0.315) (* birth interval *)
+  let (d1, d2) = (0.210, 0.405) (* death interval *)
+  let (r1, r2) = (4, 12) (* inner and outer radius *)
+
+Full continuous, dt = 0.2
+  let alpha = 0.05
+  let (b1, b2) = (0.280, 0.365) (* birth interval *)
+  let (d1, d2) = (0.290, 0.445) (* death interval *)
+  let (r1, r2) = (4, 12) (* inner and outer radius *)

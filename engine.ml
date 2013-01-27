@@ -38,9 +38,9 @@ end = struct
     let s2 = masked_sum matrix c2 (x - r2, y - r2) in
       ((s2 -. s1) /. (a2 -. a1), s1 /. a1)
 
-  let alpha = 0.08
+  let alpha = 0.1
   let (b1, b2) = (0.240, 0.315) (* birth interval *)
-  let (d1, d2) = (0.210, 0.405) (* death interval *)
+  let (d1, d2) = (0.300, 0.375) (* death interval *)
   let (r1, r2) = (4, 12) (* inner and outer radius *)
   let sigma1 x a = 1.0 /. (1.0 +. exp (4.0 *. (a -. x) /. alpha))
   let sigma2 x a b = (sigma1 x a) *. (1.0 -. (sigma1 x b))

@@ -2,7 +2,7 @@ open Graphics;;
 open Matrix;;
 open Engine;;
 
-let (width, height) = (100, 100)
+let (width, height) = (200, 200)
 let scale = 2
 
 let set_cell_color cell = 

@@ -1,12 +1,26 @@
 module Engine : sig
-  val random_board : int * int -> float array array
-  val discrete_step : float array array -> float array array
-  val discrete_step_inplace : float array array ref -> float array array ref -> unit
+  type config = {
+    alpha : float;
+    birth_interval : float * float;
+    death_interval : float * float;
+    radiuses : int * int
+  }
 
-  val continuous_step : float -> float array array -> float array array
-  val continuous_step_inplace : float -> float array array ref -> float array array ref -> unit
+  val random_board : int * int -> float array array
+  val discrete_step : config -> float array array -> float array array
+  val discrete_step_inplace : config -> float array array ref -> float array array ref -> unit
+
+  val continuous_step : config -> float -> float array array -> float array array
+  val continuous_step_inplace : config -> float -> float array array ref -> float array array ref -> unit
 end = struct
   open Matrix
+
+  type config = {
+    alpha : float;
+    birth_interval : float * float;
+    death_interval : float * float;
+    radiuses : int * int
+  }
 
   let rec normalize_position width height (x, y) = 
     if x < 0 then normalize_position width height (x + width, y) else
@@ -38,21 +52,21 @@ end = struct
     let s2 = masked_sum matrix c2 (x - r2, y - r2) in
       ((s2 -. s1) /. (a2 -. a1), s1 /. a1)
 
-  let alpha = 0.1
-  let (b1, b2) = (0.240, 0.315) (* birth interval *)
-  let (d1, d2) = (0.300, 0.375) (* death interval *)
-  let (r1, r2) = (4, 12) (* inner and outer radius *)
-  let sigma1 x a = 1.0 /. (1.0 +. exp (4.0 *. (a -. x) /. alpha))
-  let sigma2 x a b = (sigma1 x a) *. (1.0 -. (sigma1 x b))
-  let sigmam x y m = x *. (1.0 -. (sigma1 m 0.5)) +. y *. (sigma1 m 0.5)
-  let transition n m = sigma2 n (sigmam b1 d1 m) (sigmam b2 d2 m)
+  let sigma1 alpha x a = 1.0 /. (1.0 +. exp (4.0 *. (a -. x) /. alpha))
+  let sigma2 alpha x a b = (sigma1 alpha x a) *. (1.0 -. (sigma1 alpha x b))
+  let sigmam alpha x y m = x *. (1.0 -. (sigma1 alpha m 0.5)) +. y *. (sigma1 alpha m 0.5)
+  let transition config n m = 
+    let (b1, b2) = config.birth_interval in
+    let (d1, d2) = config.death_interval in
+    let alpha = config.alpha in
+    sigma2 alpha n (sigmam alpha b1 d1 m) (sigmam alpha b2 d2 m)
 
-  let discrete_cell_step matrix (x, y) e = 
-    let (out_score, in_score) = score matrix x y r1 r2 in
-    transition in_score out_score
+  let discrete_cell_step config matrix (x, y) e = 
+    let (out_score, in_score) = score matrix x y (fst config.radiuses) (snd config.radiuses) in
+    transition config in_score out_score
 
-  let continuous_cell_step dt matrix (x, y) e = 
-    let scaled_score = 2.0 *. (discrete_cell_step matrix (x, y) e) -. 1.0 in
+  let continuous_cell_step config dt matrix (x, y) e = 
+    let scaled_score = 2.0 *. (discrete_cell_step config matrix (x, y) e) -. 1.0 in
     let score = scaled_score *. dt +. matrix.(x).(y) in
     if score < 0.0 then 0.0
     else if score > 1.0 then 1.0
@@ -63,22 +77,22 @@ end = struct
       a := !b;
       b := tmp
 
-  let discrete_step matrix = 
+  let discrete_step config matrix = 
     let (width, height) = Matrix.matrix_dim matrix in
     let result = Array.make_matrix width height 0.0 in
-      Matrix.matrix_modify (discrete_cell_step matrix) result; result
+      Matrix.matrix_modify (discrete_cell_step config matrix) result; result
 
-  let discrete_step_inplace matrix buffer = 
-    Matrix.matrix_modify (discrete_cell_step !matrix) !buffer; 
+  let discrete_step_inplace config matrix buffer = 
+    Matrix.matrix_modify (discrete_cell_step config !matrix) !buffer; 
     swapref matrix buffer
 
-  let continuous_step dt matrix = 
+  let continuous_step config dt matrix = 
     let (width, height) = Matrix.matrix_dim matrix in
     let result = Array.make_matrix width height 0.0 in
-      Matrix.matrix_modify (continuous_cell_step dt matrix) result; result
+      Matrix.matrix_modify (continuous_cell_step config dt matrix) result; result
 
-  let continuous_step_inplace dt matrix buffer = 
-    Matrix.matrix_modify (continuous_cell_step dt !matrix) !buffer;
+  let continuous_step_inplace config dt matrix buffer = 
+    Matrix.matrix_modify (continuous_cell_step config dt !matrix) !buffer;
     swapref matrix buffer
 
   let random_board (width, height) = 

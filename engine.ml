@@ -3,6 +3,7 @@ module Engine : sig
     alpha : float;
     birth_interval : float * float;
     death_interval : float * float;
+    (* radiuses of inner space and neighbourhood of a cell *)
     radiuses : int * int
   }
 
@@ -16,9 +17,11 @@ end = struct
   open Matrix
 
   type config = {
+    (* smoothness of step function *)
     alpha : float;
     birth_interval : float * float;
     death_interval : float * float;
+    (* radiuses of inner space and neighbourhood of a cell *)
     radiuses : int * int
   }
 
